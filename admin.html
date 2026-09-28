@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Check-In Admin</title>
+<style>
+  :root{
+    --navy:#16233f; --navy-soft:#28395c; --paper:#f7f5f0; --gold:#b7862c;
+    --ink:#1c1c1c; --line:#d9d4c8; --muted:#6b6b6b; --error:#a8352b; --ok:#3a6b46;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,Arial,sans-serif;}
+  header{background:var(--navy);color:#fff;padding:28px 40px;}
+  header .mark{width:40px;height:4px;background:var(--gold);margin-bottom:14px;}
+  header h1{margin:0;font-size:24px;font-weight:600;}
+  header p{margin:6px 0 0;color:#c7cfe0;font-size:14px;}
+  main{max-width:860px;margin:0 auto;padding:30px 24px 60px;}
+  .panel{background:#fff;border:1px solid var(--line);border-radius:4px;padding:24px 26px;margin-bottom:22px;}
+  .panel h2{margin:0 0 16px;font-size:16px;color:var(--navy);}
+  label{display:block;font-size:13px;font-weight:600;color:var(--navy-soft);margin-bottom:6px;}
+  input{width:100%;padding:11px 13px;font:inherit;font-size:15px;border:1.5px solid var(--line);
+    border-radius:3px;background:var(--paper);}
+  input:focus{outline:none;border-color:var(--navy-soft);background:#fff;}
+  .row{display:grid;grid-template-columns:2fr 1fr auto;gap:12px;align-items:end;}
+  button{font:inherit;font-size:14px;font-weight:600;padding:11px 16px;border-radius:3px;cursor:pointer;
+    border:1.5px solid var(--navy);background:var(--navy);color:#fff;white-space:nowrap;}
+  button.ghost{background:#fff;color:var(--navy);}
+  button.danger{background:#fff;color:var(--error);border-color:var(--error);}
+  button:disabled{opacity:.5;cursor:default;}
+  .table-wrap{overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;font-size:15px;}
+  th{text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);
+    padding:0 10px 10px;border-bottom:1px solid var(--line);}
+  td{padding:14px 10px;border-bottom:1px solid var(--line);vertical-align:middle;}
+  td.actions{text-align:right;white-space:nowrap;}
+  td.actions button{margin-left:8px;}
+  .msg{font-size:14px;margin-top:12px;min-height:18px;}
+  .msg.error{color:var(--error);} .msg.ok{color:var(--ok);}
+  .muted{color:var(--muted);font-size:14px;}
+  @media (max-width:640px){ .row{grid-template-columns:1fr;} header{padding:24px;} }
+</style>
+</head>
+<body>
+<header>
+  <div class="mark"></div>
+  <h1>Employer Check-In Admin</h1>
+  <p>Add or archive events and download check-in data.</p>
+</header>
+
+<main>
+  <div class="panel">
+    <h2>1. Admin PIN</h2>
+    <label for="pin">Enter the admin PIN to make changes or download data</label>
+    <input type="password" id="pin" autocomplete="off" style="max-width:260px;">
+  </div>
+
+  <div class="panel">
+    <h2>2. Add an event</h2>
+    <div class="row">
+      <div><label for="evName">Event name</label><input id="evName" placeholder="Fall Career Fair 2026"></div>
+      <div><label for="evDate">Date</label><input id="evDate" type="date"></div>
+      <button id="addBtn">Add event</button>
+    </div>
+    <div class="msg" id="addMsg"></div>
+  </div>
+
+  <div class="panel">
+    <h2>3. Active events <span class="muted" style="font-weight:400;">(shown on the kiosks)</span></h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Event</th><th>Date</th><th></th></tr></thead>
+        <tbody id="rows"><tr><td colspan="3" class="muted">Loading…</td></tr></tbody>
+      </table>
+    </div>
+    <div class="msg" id="listMsg"></div>
+  </div>
+
+  <div class="panel">
+    <h2>4. Archived events <span class="muted" style="font-weight:400;">(hidden from kiosks, data kept)</span></h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Event</th><th>Date</th><th></th></tr></thead>
+        <tbody id="archRows"><tr><td colspan="3" class="muted">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<script>
+/* =================== SETTINGS: edit this =================== */
+const FLOW_URL = "https://default2a00728ef0d040b4a4e8ce433f3fbc.a7.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/06/workflows/30158550df024f02ba3f40b3508cc092/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=F7C6GR3YP7e8fCqVCA5MXHa_8WqUA6i_Bg63xjuGbxM"; // same URL as checkin.html
+/* =========================================================== */
+
+const $ = id => document.getElementById(id);
+
+async function api(action, payload = {}) {
+  const res = await fetch(FLOW_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action, pin: $("pin").value, ...payload })
+  });
+  if (res.status === 401) throw new Error("Wrong admin PIN.");
+  if (!res.ok) throw new Error("Something went wrong (status " + res.status + ").");
+  const t = await res.text();
+  return t ? JSON.parse(t) : {};
+}
+
+function setMsg(id, text, type) { $(id).textContent = text; $(id).className = "msg " + (type || ""); }
+
+function makeRow(ev, archived) {
+  const tr = document.createElement("tr");
+  const tdName = document.createElement("td"); tdName.textContent = ev.name;
+  const tdDate = document.createElement("td"); tdDate.textContent = ev.date || "";
+  const tdAct = document.createElement("td"); tdAct.className = "actions";
+
+  const dl = document.createElement("button");
+  dl.className = "ghost"; dl.textContent = "Download CSV";
+  dl.onclick = () => downloadCsv(ev, dl);
+
+  const st = document.createElement("button");
+  st.className = archived ? "ghost" : "danger";
+  st.textContent = archived ? "Restore" : "Archive";
+  st.onclick = () => setStatus(ev, archived ? "Active" : "Archived", st);
+
+  tdAct.append(dl, st);
+  tr.append(tdName, tdDate, tdAct);
+  return tr;
+}
+
+async function loadEvents() {
+  const tbody = $("rows"), abody = $("archRows");
+  try {
+    const events = await api("getEvents");
+    const active = events.filter(ev => ev.status !== "Archived");
+    const archived = events.filter(ev => ev.status === "Archived");
+    tbody.innerHTML = ""; abody.innerHTML = "";
+
+    if (!active.length) tbody.innerHTML = '<tr><td colspan="3" class="muted">No active events. Add one above.</td></tr>';
+    else active.forEach(ev => tbody.appendChild(makeRow(ev, false)));
+
+    if (!archived.length) abody.innerHTML = '<tr><td colspan="3" class="muted">No archived events.</td></tr>';
+    else archived.forEach(ev => abody.appendChild(makeRow(ev, true)));
+  } catch (e) {
+    tbody.innerHTML = '<tr><td colspan="3" class="muted">Couldn\'t load events. Check the FLOW_URL setting.</td></tr>';
+    abody.innerHTML = "";
+  }
+}
+
+$("addBtn").onclick = async () => {
+  const name = $("evName").value.trim();
+  if (!name) return setMsg("addMsg", "Please enter an event name.", "error");
+  $("addBtn").disabled = true;
+  try {
+    await api("addEvent", { eventName: name, eventDate: $("evDate").value });
+    $("evName").value = ""; $("evDate").value = "";
+    setMsg("addMsg", "Event added.", "ok");
+    loadEvents();
+  } catch (e) { setMsg("addMsg", e.message, "error"); }
+  $("addBtn").disabled = false;
+};
+
+async function setStatus(ev, status, btn) {
+  if (status === "Archived" &&
+      !confirm('Archive "' + ev.name + '"? It will be hidden from the kiosks. All check-in data is kept and you can still download it or restore the event.')) return;
+  btn.disabled = true;
+  try {
+    await api("setEventStatus", { eventId: String(ev.id), eventName: ev.name, status });
+    setMsg("listMsg", status === "Archived" ? "Event archived." : "Event restored.", "ok");
+    loadEvents();
+  } catch (e) { setMsg("listMsg", e.message, "error"); btn.disabled = false; }
+}
+
+function fmt(iso) {
+  const d = new Date(iso); if (isNaN(d)) return iso || "";
+  const p = n => String(n).padStart(2, "0");
+  return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) + " " +
+         p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds());
+}
+const cell = v => '"' + String(v ?? "").replace(/"/g, '""') + '"';
+
+async function downloadCsv(ev, btn) {
+  btn.disabled = true; btn.textContent = "Preparing…";
+  try {
+    const rows = await api("getCheckIns", { eventId: String(ev.id) });
+    rows.sort((a, b) => String(a.timestamp).localeCompare(String(b.timestamp)));
+    const header = ["Timestamp", "Event", "Name", "Email", "Company", "Job Title", "Station"];
+    const lines = [header.map(cell).join(",")].concat(rows.map(r =>
+      [fmt(r.timestamp), ev.name, r.name, r.email, r.company, r.jobTitle, r.station].map(cell).join(",")
+    ));
+    const blob = new Blob(["\ufeff" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = ev.name.replace(/[^\w\- ]+/g, "").trim().replace(/\s+/g, "_") + "_checkins.csv";
+    document.body.appendChild(a); a.click(); a.remove();
+    setMsg("listMsg", rows.length + " check-ins downloaded for " + ev.name + ".", "ok");
+  } catch (e) { setMsg("listMsg", e.message, "error"); }
+  btn.disabled = false; btn.textContent = "Download CSV";
+}
+
+loadEvents();
+</script>
+</body>
+</html>
