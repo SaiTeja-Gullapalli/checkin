@@ -3,51 +3,100 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Check-In Admin</title>
+<title>Check-In Admin | UA Career Center</title>
 <style>
+  /* UA brand palette: primary = Crimson Flame, Capstone Gray, Victory White.
+     Chimes Gray (secondary) is used only for thin borders. No tints/shades. */
   :root{
-    --navy:#16233f; --navy-soft:#28395c; --paper:#f7f5f0; --gold:#b7862c;
-    --ink:#1c1c1c; --line:#d9d4c8; --muted:#6b6b6b; --error:#a8352b; --ok:#3a6b46;
+    --crimson:#9E1B32; --capstone:#828A8F; --white:#FFFFFF; --chimes:#C1C6C9; --ink:#222222;
+    --serif:"Minion Pro","Minion",Georgia,"Times New Roman",serif;
+    --sans:"Trade Gothic Next","Trade Gothic","Trade Gothic LT Std","Helvetica Neue",Arial,sans-serif;
   }
   *{box-sizing:border-box;}
-  body{margin:0;background:var(--paper);color:var(--ink);
-    font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,Arial,sans-serif;}
-  header{background:var(--navy);color:#fff;padding:28px 40px;}
-  header .mark{width:40px;height:4px;background:var(--gold);margin-bottom:14px;}
-  header h1{margin:0;font-size:24px;font-weight:600;}
-  header p{margin:6px 0 0;color:#c7cfe0;font-size:14px;}
-  main{max-width:860px;margin:0 auto;padding:30px 24px 60px;}
-  .panel{background:#fff;border:1px solid var(--line);border-radius:4px;padding:24px 26px;margin-bottom:22px;}
-  .panel h2{margin:0 0 16px;font-size:16px;color:var(--navy);}
-  label{display:block;font-size:13px;font-weight:600;color:var(--navy-soft);margin-bottom:6px;}
-  input{width:100%;padding:11px 13px;font:inherit;font-size:15px;border:1.5px solid var(--line);
-    border-radius:3px;background:var(--paper);}
-  input:focus{outline:none;border-color:var(--navy-soft);background:#fff;}
+  body{margin:0;background:var(--white);color:var(--ink);font-family:var(--sans);}
+  button,input{font-family:var(--sans);}
+
+  .topbar{background:var(--crimson);color:var(--white);display:flex;align-items:center;justify-content:space-between;
+    gap:16px;padding:14px 32px;flex-wrap:wrap;}
+  .brand{display:flex;align-items:center;gap:14px;}
+  .brand img{height:44px;width:auto;display:block;}
+  .nameplate{display:flex;flex-direction:column;line-height:1.15;}
+  .nameplate .ua{font-size:13px;letter-spacing:2.2px;text-transform:uppercase;font-weight:700;}
+  .nameplate .unit{font-family:var(--serif);font-size:19px;}
+  .tools{display:flex;gap:10px;}
+  .tool{display:inline-flex;align-items:center;gap:8px;padding:9px 14px;background:transparent;color:var(--white);
+    border:1.5px solid var(--white);border-radius:3px;font-size:13px;font-weight:700;letter-spacing:.6px;
+    text-transform:uppercase;cursor:pointer;text-decoration:none;}
+  .tool:hover,.tool:active{background:var(--white);color:var(--crimson);}
+  .tool svg{width:15px;height:15px;}
+  .tool[hidden]{display:none;}
+  .rule{height:5px;background:var(--capstone);}
+
+  .page-head{max-width:900px;margin:0 auto;padding:34px 24px 6px;}
+  .eyebrow{font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--capstone);margin:0 0 8px;}
+  .page-head h1{margin:0;font-family:var(--serif);font-weight:600;font-size:34px;color:var(--crimson);}
+  .page-head p{margin:8px 0 0;font-size:16px;}
+
+  main{max-width:900px;margin:0 auto;padding:22px 24px 60px;}
+  .panel{background:var(--white);border:1px solid var(--chimes);border-top:4px solid var(--crimson);border-radius:3px;
+    padding:24px 26px;margin-bottom:22px;}
+  .panel h2{margin:0 0 16px;font-family:var(--serif);font-weight:600;font-size:22px;color:var(--crimson);}
+  .panel h2 .muted{font-family:var(--sans);font-size:14px;font-weight:400;}
+  label{display:block;font-size:12.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:7px;}
+  input{width:100%;padding:11px 13px;font-size:15px;border:1.5px solid var(--capstone);border-radius:3px;background:var(--white);color:var(--ink);}
+  input:focus{outline:none;border-color:var(--crimson);box-shadow:0 0 0 1px var(--crimson);}
   .row{display:grid;grid-template-columns:2fr 1fr auto;gap:12px;align-items:end;}
-  button{font:inherit;font-size:14px;font-weight:600;padding:11px 16px;border-radius:3px;cursor:pointer;
-    border:1.5px solid var(--navy);background:var(--navy);color:#fff;white-space:nowrap;}
-  button.ghost{background:#fff;color:var(--navy);}
-  button.danger{background:#fff;color:var(--error);border-color:var(--error);}
+  button{font-size:13px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;padding:12px 16px;border-radius:3px;
+    cursor:pointer;border:1.5px solid var(--crimson);background:var(--crimson);color:var(--white);white-space:nowrap;}
+  button.ghost{background:var(--white);color:var(--crimson);}
+  button.danger,button.quiet{background:var(--white);color:var(--ink);border-color:var(--capstone);}
   button:disabled{opacity:.5;cursor:default;}
   .table-wrap{overflow-x:auto;}
   table{width:100%;border-collapse:collapse;font-size:15px;}
-  th{text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);
-    padding:0 10px 10px;border-bottom:1px solid var(--line);}
-  td{padding:14px 10px;border-bottom:1px solid var(--line);vertical-align:middle;}
+  th{text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--capstone);
+    padding:0 10px 10px;border-bottom:2px solid var(--chimes);}
+  td{padding:14px 10px;border-bottom:1px solid var(--chimes);vertical-align:middle;}
+  td:first-child{font-weight:700;}
   td.actions{text-align:right;white-space:nowrap;}
   td.actions button{margin-left:8px;}
-  .msg{font-size:14px;margin-top:12px;min-height:18px;}
-  .msg.error{color:var(--error);} .msg.ok{color:var(--ok);}
-  .muted{color:var(--muted);font-size:14px;}
-  @media (max-width:640px){ .row{grid-template-columns:1fr;} header{padding:24px;} }
+  .msg{font-size:14px;margin-top:12px;min-height:18px;font-weight:700;}
+  .msg.error{color:var(--crimson);} .msg.ok{color:var(--ink);}
+  .msg.ok::before{content:"\2713  ";color:var(--crimson);}
+  .muted{color:var(--capstone);font-size:14px;}
+
+  [hidden]{display:none !important;}
+
+  @media (max-width:640px){
+    .row{grid-template-columns:1fr;} .topbar{padding:12px 16px;} .tool .lbl{display:none;}
+    .page-head h1{font-size:28px;} td.actions button{margin:4px 0 0 6px;}
+  }
 </style>
 </head>
 <body>
-<header>
-  <div class="mark"></div>
-  <h1>Employer Check-In Admin</h1>
-  <p>Add or archive events and download check-in data.</p>
+
+<header class="topbar">
+  <div class="brand">
+    <!-- Optional: put the official UA logo file (from brand.ua.edu, white version) in this folder as ua-logo.png -->
+    <img src="ua-logo.png" alt="" onerror="this.remove()">
+    <div class="nameplate">
+      <span class="ua">The University of Alabama</span>
+      <span class="unit">Career Center</span>
+    </div>
+  </div>
+  <div class="tools">
+    <a class="tool" href="checkin.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+      <span class="lbl">Back to kiosk</span>
+    </a>
+  </div>
 </header>
+<div class="rule"></div>
+
+<div class="page-head">
+  <p class="eyebrow">Admin</p>
+  <h1>Employer Check-In</h1>
+  <p>Add or archive events and download check-in data.</p>
+</div>
 
 <main>
   <div class="panel">
@@ -198,6 +247,9 @@ async function downloadCsv(ev, btn) {
   } catch (e) { setMsg("listMsg", e.message, "error"); }
   btn.disabled = false; btn.textContent = "Download CSV";
 }
+
+// PIN typed on the kiosk's Admin button (this tab only; removed once read)
+try { const k = sessionStorage.getItem("ua.admin.key"); if (k) { $("pin").value = k; sessionStorage.removeItem("ua.admin.key"); } } catch (e) {}
 
 loadEvents();
 </script>

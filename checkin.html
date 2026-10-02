@@ -3,125 +3,211 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Employer Check-In</title>
+<title>Employer Check-In | UA Career Center</title>
 <style>
+  /* UA brand palette: primary = Crimson Flame, Capstone Gray, Victory White.
+     Chimes Gray (secondary) is used only for thin borders. No tints/shades. */
   :root{
-    --navy:#16233f; --navy-soft:#28395c; --paper:#f7f5f0; --gold:#b7862c;
-    --ink:#1c1c1c; --line:#d9d4c8; --muted:#6b6b6b; --error:#a8352b; --ok:#3a6b46;
+    --crimson:#9E1B32; --capstone:#828A8F; --white:#FFFFFF; --chimes:#C1C6C9;
+    --ink:#222222;
+    --serif:"Minion Pro","Minion",Georgia,"Times New Roman",serif;
+    --sans:"Trade Gothic Next","Trade Gothic","Trade Gothic LT Std","Helvetica Neue",Arial,sans-serif;
   }
   *{box-sizing:border-box;}
-  html,body{margin:0;height:100%;background:var(--paper);color:var(--ink);
-    font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,Arial,sans-serif;overflow:hidden;}
-  body{display:flex;align-items:center;justify-content:center;padding:32px;}
-  .card{width:100%;max-width:640px;background:#fff;border:1px solid var(--line);
-    border-radius:4px;box-shadow:0 2px 24px rgba(22,35,63,.08);overflow:hidden;}
-  .head{background:var(--navy);color:#fff;padding:34px 40px 28px;user-select:none;}
-  .mark{width:40px;height:4px;background:var(--gold);margin-bottom:18px;}
-  .head h1{margin:0;font-size:28px;font-weight:600;}
-  .head p{margin:8px 0 0;color:#c7cfe0;font-size:15px;}
-  .screen{display:none;padding:30px 40px 34px;}
+  html,body{margin:0;height:100%;background:var(--white);color:var(--ink);font-family:var(--sans);}
+  body{display:flex;flex-direction:column;overflow:hidden;}
+  button{font-family:var(--sans);}
+
+  /* ---------- top bar ---------- */
+  .topbar{background:var(--crimson);color:var(--white);display:flex;align-items:center;
+    justify-content:space-between;gap:16px;padding:14px 32px;flex-shrink:0;}
+  .brand{display:flex;align-items:center;gap:14px;min-width:0;}
+  .brand img{height:44px;width:auto;display:block;}
+  .nameplate{display:flex;flex-direction:column;line-height:1.15;}
+  .nameplate .ua{font-size:13px;letter-spacing:2.2px;text-transform:uppercase;font-weight:700;}
+  .nameplate .unit{font-family:var(--serif);font-size:19px;}
+  .tools{display:flex;gap:10px;flex-shrink:0;}
+  .tool{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;min-height:44px;
+    background:transparent;color:var(--white);border:1.5px solid var(--white);border-radius:3px;
+    font-size:14px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;cursor:pointer;}
+  .tool:active{background:var(--white);color:var(--crimson);}
+  .tool svg{width:16px;height:16px;}
+  .tool[hidden]{display:none;}
+  .rule{height:5px;background:var(--capstone);flex-shrink:0;}
+
+  /* ---------- main card ---------- */
+  main{flex:1;overflow-y:auto;display:flex;align-items:flex-start;justify-content:center;padding:36px 24px;}
+  .card{width:100%;max-width:680px;background:var(--white);border:1px solid var(--chimes);border-radius:4px;margin:auto 0;}
+  .head{padding:30px 40px 22px;border-bottom:1px solid var(--chimes);}
+  .eyebrow{font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--capstone);margin:0 0 8px;}
+  .head h1{margin:0;font-family:var(--serif);font-weight:600;font-size:34px;line-height:1.15;color:var(--crimson);}
+  .head p{margin:10px 0 0;font-size:16px;color:var(--ink);}
+  .screen{display:none;padding:28px 40px 34px;}
   .screen.active{display:block;}
 
-  .section-label{font-size:13px;font-weight:600;color:var(--navy-soft);margin:0 0 10px;}
-  .event-list{display:grid;gap:10px;max-height:260px;overflow-y:auto;margin-bottom:22px;}
-  .event-btn{text-align:left;padding:15px 16px;border:1.5px solid var(--line);border-radius:3px;
-    background:var(--paper);font:inherit;font-size:16px;font-weight:600;color:var(--navy);cursor:pointer;}
-  .event-btn small{display:block;font-weight:400;color:var(--muted);font-size:13px;margin-top:3px;}
-  .event-btn.selected{border-color:var(--navy);background:#fff;box-shadow:inset 4px 0 0 var(--gold);}
-  .note{color:var(--muted);font-size:14px;padding:6px 0 18px;}
+  .section-label{font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--ink);margin:0 0 10px;}
+  .event-list{display:grid;gap:10px;max-height:290px;overflow-y:auto;margin-bottom:24px;padding:2px;}
+  .event-btn{text-align:left;padding:16px 18px;border:1.5px solid var(--chimes);border-radius:3px;
+    background:var(--white);font-size:17px;font-weight:700;color:var(--ink);cursor:pointer;}
+  .event-btn small{display:block;font-weight:400;color:var(--capstone);font-size:14px;margin-top:4px;}
+  .event-btn.selected{border-color:var(--crimson);box-shadow:inset 6px 0 0 var(--crimson);color:var(--crimson);}
+  .note{color:var(--capstone);font-size:15px;padding:6px 0 18px;}
 
   .field{margin-bottom:20px;}
-  .field label{display:block;font-size:13px;font-weight:600;color:var(--navy-soft);margin-bottom:6px;}
-  .field input{width:100%;padding:14px 16px;font:inherit;font-size:17px;border:1.5px solid var(--line);
-    border-radius:3px;background:var(--paper);color:var(--ink);}
-  .field input:focus{outline:none;border-color:var(--navy-soft);background:#fff;}
-  .field.invalid input{border-color:var(--error);}
-  .field .err{display:none;font-size:12.5px;color:var(--error);margin-top:5px;}
+  .field label{display:block;font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--ink);margin-bottom:7px;}
+  .field input{width:100%;padding:15px 16px;font-family:var(--sans);font-size:18px;border:1.5px solid var(--capstone);
+    border-radius:3px;background:var(--white);color:var(--ink);}
+  .field input:focus{outline:none;border-color:var(--crimson);box-shadow:0 0 0 1px var(--crimson);}
+  .field.invalid input{border-color:var(--crimson);border-width:2.5px;}
+  .field .err{display:none;font-size:14px;font-weight:700;color:var(--crimson);margin-top:6px;}
   .field.invalid .err{display:block;}
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
 
-  .btn{width:100%;padding:16px;font:inherit;font-size:17px;font-weight:600;background:var(--navy);
-    color:#fff;border:none;border-radius:3px;cursor:pointer;}
-  .btn:disabled{background:#8b93a5;cursor:default;}
-  .btn:not(:disabled):hover{background:var(--navy-soft);}
-  .status{margin-top:14px;font-size:14px;text-align:center;min-height:18px;}
-  .status.error{color:var(--error);}
+  .btn{width:100%;padding:17px;font-size:17px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;
+    background:var(--crimson);color:var(--white);border:2px solid var(--crimson);border-radius:3px;cursor:pointer;}
+  .btn:disabled{background:var(--capstone);border-color:var(--capstone);cursor:default;}
+  .btn.ghost{background:var(--white);color:var(--crimson);}
+  .status{margin-top:14px;font-size:15px;text-align:center;min-height:18px;}
+  .status.error{color:var(--crimson);font-weight:700;}
 
-  .footer{display:flex;justify-content:space-between;padding:0 40px 16px;font-size:12px;color:var(--muted);}
+  .footer{display:flex;justify-content:space-between;padding:0 40px 18px;font-size:14px;color:var(--capstone);}
 
-  .overlay{position:fixed;inset:0;background:var(--navy);color:#fff;display:none;align-items:center;
-    justify-content:center;text-align:center;flex-direction:column;padding:40px;}
+  /* ---------- success overlay ---------- */
+  .overlay{position:fixed;inset:0;background:var(--crimson);color:var(--white);display:none;align-items:center;
+    justify-content:center;text-align:center;flex-direction:column;padding:40px;z-index:20;}
   .overlay.show{display:flex;}
-  .check{width:64px;height:64px;border-radius:50%;border:2.5px solid var(--gold);display:flex;
-    align-items:center;justify-content:center;margin-bottom:22px;font-size:30px;color:var(--gold);}
-  .overlay h2{margin:0 0 10px;font-size:24px;font-weight:600;}
-  .overlay p{margin:0;color:#c7cfe0;font-size:15px;max-width:380px;}
+  .check{width:84px;height:84px;border-radius:50%;background:var(--white);color:var(--crimson);display:flex;
+    align-items:center;justify-content:center;margin-bottom:26px;font-size:44px;font-weight:700;}
+  .overlay h2{margin:0 0 12px;font-family:var(--serif);font-size:40px;font-weight:600;}
+  .overlay p{margin:0;font-size:18px;max-width:440px;}
+  .overlay .sig{margin-top:34px;font-size:13px;letter-spacing:2.2px;text-transform:uppercase;font-weight:700;}
+
+  /* ---------- PIN / password modal ---------- */
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:24px;z-index:30;}
+  .modal.show{display:flex;}
+  .modal-box{width:100%;max-width:420px;background:var(--white);border-radius:4px;border-top:6px solid var(--crimson);padding:28px 30px 26px;}
+  .modal-box h2{margin:0 0 6px;font-family:var(--serif);font-weight:600;font-size:26px;color:var(--crimson);}
+  .modal-box p{margin:0 0 18px;font-size:15px;color:var(--ink);}
+  .modal-box input{width:100%;padding:15px 16px;font-size:22px;letter-spacing:6px;text-align:center;
+    border:1.5px solid var(--capstone);border-radius:3px;font-family:var(--sans);}
+  .modal-box input:focus{outline:none;border-color:var(--crimson);box-shadow:0 0 0 1px var(--crimson);}
+  .modal-err{min-height:22px;margin:8px 0 6px;font-size:14px;font-weight:700;color:var(--crimson);}
+  .modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .modal-actions .btn{padding:14px;font-size:15px;}
+  .shake{animation:shake .3s;}
+  @keyframes shake{25%{transform:translateX(-8px)}50%{transform:translateX(8px)}75%{transform:translateX(-4px)}}
+
+  @media (max-width:640px){
+    .topbar{padding:12px 16px;} .tool .lbl{display:none;}
+    .head,.screen{padding-left:22px;padding-right:22px;} .footer{padding:0 22px 16px;}
+    .row2{grid-template-columns:1fr;gap:0;} .head h1{font-size:28px;}
+  }
 </style>
 </head>
 <body>
 
-<div class="card">
-  <div class="head" id="head">
-    <div class="mark"></div>
-    <h1 id="headTitle">Kiosk setup</h1>
-    <p id="headSub">Staff only: choose the event for this laptop.</p>
+<header class="topbar">
+  <div class="brand">
+    <!-- Optional: put the official UA logo file (from brand.ua.edu, white version) in this folder as ua-logo.png -->
+    <img src="ua-logo.png" alt="" onerror="this.remove()">
+    <div class="nameplate">
+      <span class="ua">The University of Alabama</span>
+      <span class="unit">Career Center</span>
+    </div>
   </div>
+  <div class="tools">
+    <button class="tool" id="changeBtn" type="button" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+      <span class="lbl">Change event</span>
+    </button>
+    <button class="tool" id="adminBtn" type="button" aria-label="Admin">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="1.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+      <span class="lbl">Admin</span>
+    </button>
+  </div>
+</header>
+<div class="rule"></div>
 
-  <!-- STAFF SETUP SCREEN -->
-  <div class="screen active" id="screen-setup">
-    <p class="section-label">Event</p>
-    <div class="event-list" id="eventList"></div>
-    <div class="note" id="eventNote" style="display:none;"></div>
-
-    <div class="field">
-      <label for="station">Station name (optional, e.g. "Table 3")</label>
-      <input type="text" id="station" autocomplete="off">
+<main>
+  <div class="card">
+    <div class="head">
+      <p class="eyebrow" id="headEyebrow">Staff setup</p>
+      <h1 id="headTitle">Choose an event</h1>
+      <p id="headSub">Select the event this laptop is checking in for.</p>
     </div>
 
-    <button class="btn" id="startBtn" disabled>Start check-in</button>
-    <div class="status" id="setupStatus"></div>
-  </div>
+    <!-- STAFF SETUP SCREEN -->
+    <div class="screen active" id="screen-setup">
+      <p class="section-label">Event</p>
+      <div class="event-list" id="eventList"></div>
+      <div class="note" id="eventNote" style="display:none;"></div>
 
-  <!-- EMPLOYER CHECK-IN SCREEN -->
-  <div class="screen" id="screen-form">
-    <form id="form" novalidate>
-      <div class="field" id="f-name">
-        <label for="name">Full name</label>
-        <input type="text" id="name" autocomplete="off">
-        <div class="err">Please enter your name.</div>
+      <div class="field">
+        <label for="station">Station name (optional, e.g. "Table 3")</label>
+        <input type="text" id="station" autocomplete="off">
       </div>
-      <div class="row2">
-        <div class="field" id="f-company">
-          <label for="company">Company</label>
-          <input type="text" id="company" autocomplete="off">
-          <div class="err">Please enter your company.</div>
+
+      <button class="btn" id="startBtn" disabled>Start check-in</button>
+      <div class="status" id="setupStatus"></div>
+    </div>
+
+    <!-- EMPLOYER CHECK-IN SCREEN -->
+    <div class="screen" id="screen-form">
+      <form id="form" novalidate>
+        <div class="field" id="f-name">
+          <label for="name">Full name</label>
+          <input type="text" id="name" autocomplete="off">
+          <div class="err">Please enter your name.</div>
         </div>
-        <div class="field" id="f-jobTitle">
-          <label for="jobTitle">Job title</label>
-          <input type="text" id="jobTitle" autocomplete="off">
-          <div class="err">Please enter your job title.</div>
+        <div class="row2">
+          <div class="field" id="f-company">
+            <label for="company">Company</label>
+            <input type="text" id="company" autocomplete="off">
+            <div class="err">Please enter your company.</div>
+          </div>
+          <div class="field" id="f-jobTitle">
+            <label for="jobTitle">Job title</label>
+            <input type="text" id="jobTitle" autocomplete="off">
+            <div class="err">Please enter your job title.</div>
+          </div>
         </div>
-      </div>
-      <div class="field" id="f-email">
-        <label for="email">Email</label>
-        <input type="email" id="email" autocomplete="off">
-        <div class="err">Please enter a valid email.</div>
-      </div>
-      <button type="submit" class="btn" id="submitBtn">Check in &amp; print name tag</button>
-      <div class="status" id="formStatus"></div>
-    </form>
-  </div>
+        <div class="field" id="f-email">
+          <label for="email">Email</label>
+          <input type="email" id="email" autocomplete="off">
+          <div class="err">Please enter a valid email.</div>
+        </div>
+        <button type="submit" class="btn" id="submitBtn">Check in &amp; print name tag</button>
+        <div class="status" id="formStatus"></div>
+      </form>
+    </div>
 
-  <div class="footer" id="footer" style="display:none;">
-    <span id="stationLabel"></span>
-    <span id="queueLabel"></span>
+    <div class="footer" id="footer" style="display:none;">
+      <span id="stationLabel"></span>
+      <span id="queueLabel"></span>
+    </div>
   </div>
-</div>
+</main>
 
+<!-- success screen -->
 <div class="overlay" id="overlay">
   <div class="check">&#10003;</div>
   <h2>You're checked in</h2>
   <p id="overlayMsg">Your name tag is printing now. Welcome!</p>
+  <div class="sig">The University of Alabama &middot; Career Center</div>
+</div>
+
+<!-- PIN / password prompt -->
+<div class="modal" id="pinModal" role="dialog" aria-modal="true" aria-labelledby="pinTitle">
+  <form class="modal-box" id="pinForm" novalidate>
+    <h2 id="pinTitle">Staff PIN</h2>
+    <p id="pinText"></p>
+    <input type="password" id="pinInput" autocomplete="off">
+    <div class="modal-err" id="pinErr"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn ghost" id="pinCancel">Cancel</button>
+      <button type="submit" class="btn" id="pinOk">Unlock</button>
+    </div>
+  </form>
 </div>
 
 <!-- DYMO Connect JavaScript framework: download dymo.connect.framework.js and put it in this same folder -->
@@ -130,9 +216,10 @@
 /* =================== SETTINGS: edit these =================== */
 const CONFIG = {
   FLOW_URL: "https://default2a00728ef0d040b4a4e8ce433f3fbc.a7.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/06/workflows/30158550df024f02ba3f40b3508cc092/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=F7C6GR3YP7e8fCqVCA5MXHa_8WqUA6i_Bg63xjuGbxM", // one URL for everything
-  LABEL_FILE: "nametag.dymo",                      // your label template, same folder
-  STAFF_PIN: "2627",                               // to leave check-in mode and change event
-  RESET_DELAY_MS: 3500                             // how long the "checked in" screen shows
+  LABEL_FILE: "nametag.dymo",          // your label template, same folder
+  STAFF_PIN: "2627",                   // needed for "Change event"
+  ADMIN_URL: "admin.html",             // the admin page
+  RESET_DELAY_MS: 3500                 // how long the "checked in" screen shows
 };
 /* ============================================================ */
 
@@ -157,13 +244,84 @@ async function api(action, payload = {}) {
   return text ? JSON.parse(text) : {};
 }
 
+/* ---------- PIN / password prompt ----------
+   askPin({ title, text, numeric, check }) -> resolves true when check(value) passes, false on cancel */
+let pinState = null, pinIdle = null;
+function askPin({ title, text, numeric, check }) {
+  return new Promise(resolve => {
+    pinState = { check, resolve };
+    $("pinTitle").textContent = title;
+    $("pinText").textContent = text;
+    $("pinErr").textContent = "";
+    const inp = $("pinInput");
+    inp.value = "";
+    inp.inputMode = numeric ? "numeric" : "text";
+    inp.style.letterSpacing = numeric ? "6px" : "1px";
+    $("pinModal").classList.add("show");
+    setTimeout(() => inp.focus(), 30);
+    resetPinIdle();
+  });
+}
+function closePin(result) {
+  $("pinModal").classList.remove("show");
+  clearTimeout(pinIdle);
+  const s = pinState; pinState = null;
+  if (s) s.resolve(result);
+  if ($("screen-form").classList.contains("active")) $("name").focus();
+}
+function resetPinIdle() { clearTimeout(pinIdle); pinIdle = setTimeout(() => closePin(false), 30000); } // auto-close if left open
+$("pinInput").addEventListener("input", resetPinIdle);
+$("pinCancel").onclick = () => closePin(false);
+$("pinModal").addEventListener("click", e => { if (e.target === $("pinModal")) closePin(false); });
+document.addEventListener("keydown", e => { if (e.key === "Escape" && pinState) closePin(false); });
+$("pinForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  if (!pinState) return;
+  const v = $("pinInput").value;
+  if (!v) return;
+  let ok = false, msg = "Incorrect. Please try again.";
+  try { ok = await pinState.check(v); } catch (err) { msg = err.message || msg; }
+  if (ok) return closePin(true);
+  $("pinErr").textContent = msg;
+  $("pinInput").value = "";
+  const box = $("pinForm"); box.classList.remove("shake"); void box.offsetWidth; box.classList.add("shake");
+  $("pinInput").focus();
+});
+
+/* ---------- header buttons ---------- */
+$("changeBtn").onclick = async () => {
+  const ok = await askPin({
+    title: "Change event",
+    text: "Staff only. Enter the staff PIN to go back to event selection.",
+    numeric: true,
+    check: async v => v === CONFIG.STAFF_PIN
+  });
+  if (ok) showSetup();
+};
+
+$("adminBtn").onclick = async () => {
+  let entered = "";
+  const ok = await askPin({
+    title: "Admin access",
+    text: "Enter the admin PIN to open the admin page.",
+    numeric: false,
+    check: async v => { entered = v; return true; } // the flow checks the PIN on the admin page, as before
+  });
+  if (!ok) return;
+  // Pass the PIN to the admin page so it is filled in there (this tab only; removed once read).
+  try { sessionStorage.setItem("ua.admin.key", entered); } catch (e) {}
+  location.href = CONFIG.ADMIN_URL;
+};
+
 /* ---------- staff setup screen ---------- */
 async function showSetup() {
   $("screen-setup").classList.add("active");
   $("screen-form").classList.remove("active");
   $("footer").style.display = "none";
-  $("headTitle").textContent = "Kiosk setup";
-  $("headSub").textContent = "Staff only: choose the event for this laptop.";
+  $("changeBtn").hidden = true;
+  $("headEyebrow").textContent = "Staff setup";
+  $("headTitle").textContent = "Choose an event";
+  $("headSub").textContent = "Select the event this laptop is checking in for.";
   $("station").value = store.get("kiosk.station", "");
   chosenEvent = null;
   $("startBtn").disabled = true;
@@ -173,12 +331,12 @@ async function showSetup() {
 
   try {
     const events = (await api("getEvents")).filter(ev => ev.status !== "Archived");
-    if (!events.length) { note.textContent = "No events yet. Add one on the admin page."; return; }
+    if (!events.length) { note.textContent = "No events yet. Use the Admin button to add one."; return; }
     note.style.display = "none";
+    const current = store.get("kiosk.event", null);
     events.forEach(ev => {
       const b = document.createElement("button");
       b.className = "event-btn"; b.type = "button";
-      b.innerHTML = "";
       b.append(ev.name);
       if (ev.date) { const s = document.createElement("small"); s.textContent = ev.date; b.append(s); }
       b.onclick = () => {
@@ -186,6 +344,7 @@ async function showSetup() {
         b.classList.add("selected"); chosenEvent = ev; $("startBtn").disabled = false;
       };
       list.appendChild(b);
+      if (current && String(current.id) === String(ev.id)) b.click(); // preselect the event this laptop was on
     });
   } catch (e) {
     note.textContent = "Couldn't load events. Check the internet connection and the FLOW_URL setting.";
@@ -206,24 +365,14 @@ function showForm() {
   $("screen-setup").classList.remove("active");
   $("screen-form").classList.add("active");
   $("footer").style.display = "flex";
+  $("changeBtn").hidden = false;
+  $("headEyebrow").textContent = "Employer check-in";
   $("headTitle").textContent = ev.name;
   $("headSub").textContent = "Welcome! Enter your details and your name tag will print.";
   $("stationLabel").textContent = store.get("kiosk.station", "") || "";
   updateQueueLabel();
   $("name").focus();
 }
-
-// Hidden staff exit: tap the dark header 5 times quickly, then enter the PIN
-let taps = 0, tapTimer = null;
-$("head").addEventListener("click", () => {
-  if (!$("screen-form").classList.contains("active")) return;
-  taps++; clearTimeout(tapTimer); tapTimer = setTimeout(() => taps = 0, 2000);
-  if (taps >= 5) {
-    taps = 0;
-    const pin = prompt("Staff PIN:");
-    if (pin === CONFIG.STAFF_PIN) showSetup();
-  }
-});
 
 function validate(d) {
   let ok = true;
